@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hirst Painting Simulation</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        #canvas {
+            border: 1px solid black;
+            margin-top: 20px;
+        }
+
+        #fileInput {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hirst Painting Simulation</h1>
+
+    <!-- File input for selecting an image -->
+    <input type="file" id="fileInput" accept="image/*">
+    
+    <!-- Canvas for drawing -->
+    <canvas id="canvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let imageLoaded = false;
+
+        // Function to get a color from the image at a random location
+        function getColorFromImage(x, y) {
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            return `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`; // Returns RGB color
+        }
+
+        // Function to draw a single dot on the canvas
+        function drawDot(x, y, color) {
+            const dotSize = 25;
+            ctx.beginPath();
+            ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        // Function to draw the grid of dots slowly
+        async function drawDottedLineSlowly() {
+            const spacing = 50;
+            const number_of_dots = 10;
+            const number_of_rows = 10;
+
+            for (let j = 0; j < number_of_rows; j++) {
+                for (let i = 0; i < number_of_dots; i++) {
+                    const x = i * spacing + 50;
+                    const y = j * spacing + 50;
+
+                    // Get a color from a random location in the image
+                    const color = getColorFromImage(Math.random() * canvas.width, Math.random() * canvas.height);
+                    
+                    drawDot(x, y, color);
+                    await new Promise(resolve => setTimeout(resolve, 300));  // Slow down by 300ms between dots
+                }
+            }
+        }
+
+        // Event listener for file input
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        // Draw the selected image onto the canvas
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        imageLoaded = true;
+
+                        // Start drawing the dots after the image is loaded
+                        drawDottedLineSlowly();  // Slow drawing effect
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+    </script>
+
+</body>
+</html>
