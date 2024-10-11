@@ -1,0 +1,106 @@
+import random
+import turtle as t
+import colorgram
+import tkinter as tk
+from tkinter import filedialog
+from PIL import Image, ImageTk
+import os
+
+t.colormode(255)
+timmy = t.Turtle()
+timmy.speed(100)
+
+
+def open_image_dialog_and_save():
+    # Initialize Tkinter and hide the main window
+    root = tk.Tk()
+    root.withdraw()
+
+    # Ask the user to select an image file
+    file_path = filedialog.askopenfilename(title="Select an Image to Start Hirst Simulation Painting",
+                                           filetypes=[("Image files", "*.jpg *.jpeg *.png *.gif *.bmp"),
+                                                      ("All files", "*.*")])
+    # Ensure a file was selected
+    if file_path:
+        # Load and show the selected image
+        image = Image.open(file_path)
+        photo = ImageTk.PhotoImage(image)
+
+        # Create a new window for displaying the image
+        image_window = tk.Toplevel()
+        image_window.title("Image Preview")
+
+        # Add the image to the window
+        img_label = tk.Label(image_window, image=photo)
+        img_label.pack()
+
+        # Extract the filename from the selected path (without the directory path)
+        myfilename = os.path.basename(file_path)
+        # Save the image to the current working directory
+        save_path = myfilename
+
+        # Save the image to the current directory
+        image.save(save_path)
+        print(f"Image saved to {os.getcwd()}/{save_path}")
+
+        # Function to execute when the image window is closed
+        def on_image_window_close():
+            image_window.destroy()
+            print("Image window closed. Continuing execution...")
+
+            # Extract colors and start drawing
+            mylist = ExtractColorsFromImage(7, save_path)
+            draw_dotted_Line(7, 10, 10, mylist)
+
+        # Bind the close event of the image window to our custom function
+        image_window.protocol("WM_DELETE_WINDOW", on_image_window_close)
+
+        # Start the event loop for the image window
+        image_window.mainloop()
+
+    else:
+        print("No file selected.")
+
+
+#######################################################
+
+def ExtractColorsFromImage(numerofColors, file_path):
+    # Extract colors from the saved image file
+    HirstImagecolors = colorgram.extract(file_path, numerofColors)
+
+    my_color_list = []
+    for i in range(numerofColors):
+        rgb = HirstImagecolors[i].rgb
+        new_color = (rgb.r, rgb.g, rgb.b)
+        my_color_list.append(new_color)
+    return my_color_list
+
+
+def draw_dotted_Line(num_of_colors, number_of_dots, number_of_rows, myColorList):
+    timmy.setheading(225)
+    timmy.penup()
+    timmy.forward(300)
+    timmy.setheading(0)
+    originX = timmy.xcor()
+    originy = timmy.ycor()
+
+    n = 0
+
+    for j in range(number_of_rows):
+        timmy.goto(originX, originy)
+        timmy.setheading(90)
+        timmy.forward(50 * (j + 1))
+
+        for i in range(number_of_dots):
+            new_list = [random.choice(myColorList) for _ in range(number_of_rows * number_of_dots)]
+            timmy.dot(35, new_list[n])
+            timmy.setheading(0)
+            timmy.forward(50)
+            n += 1
+
+
+if __name__ == "__main__":
+    heirstPaintingScreen = t.Screen()
+    open_image_dialog_and_save()
+    heirstPaintingScreen.title("My Painting")
+    heirstPaintingScreen.exitonclick()
